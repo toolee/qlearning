@@ -1,5 +1,4 @@
 function qlearn
-
 %clc; clear all; close all;
 
 global S; S = 7;
@@ -19,11 +18,12 @@ small_map = ...
         C, O, C, G;
         ];
 small_map2 = ...
-      [ S, O;
-        C, G;
+      [ S, O, C;
+        C, C, C;
+        C, G, C;
         ];
 
-map = small_map;
+map = small_map2;
 
 
 global ROW;
@@ -92,35 +92,30 @@ for qx = 1:num_states
     end
 end
 
-
+R
 % 2) set up constants alpha, gamma, probabilities of movement, 
 global ALPHA; ALPHA = 0.1;
-global GAMMA; GAMMA = 0.2;
-global EPISODES; EPISODES = 10;
+global GAMMA; GAMMA = 0.5;
+global EPISODES; EPISODES = 5000;
 
 Q = zeros(size(R));
-max_while = 1;
 % 3) loop thru num of EPISODES
 for e = 1:EPISODES
   s = randperm(num_states,1); % current state
-  cnt = 0;
   while s ~= goal_state
-    actions = find(R(s,:) >= 0) % find num of possible actions
-    num_actions = size(actions,2)
+    actions = find(R(s,:) >= 0); % find num of possible actions
+    num_actions = size(actions,2);
     if ( num_actions > 0 )
       % policy for selecting action goes here
-      action_taken = ( round(rand() * (num_actions - 1)) ) + 1
+      action_taken = ( round(rand() * (num_actions - 1)) ) + 1;
     else
-      display('not possible');
+      break;  % started on an obstacle state
     end
 
     q_max = max(Q,[],2);
-    Q(s,action_taken) = R(s,action_taken) + GAMMA * q_max(action_taken);
-    s = action_taken;
-    cnt = cnt + 1;
-    if( cnt > max_while )
-      break;
-    end
+    fs = actions(action_taken);
+    Q(s,fs) = R(s,fs) + GAMMA * q_max(fs);
+    s = fs;
   end
 end
 

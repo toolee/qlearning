@@ -96,14 +96,35 @@ end
 % 2) set up constants alpha, gamma, probabilities of movement, 
 global ALPHA; ALPHA = 0.1;
 global GAMMA; GAMMA = 0.2;
-global EPISODES; EPISODES = 100;
+global EPISODES; EPISODES = 10;
 
+Q = zeros(size(R));
+max_while = 1;
 % 3) loop thru num of EPISODES
 for e = 1:EPISODES
-  init_state = randperm(num_states,1);
-  while init_state ~= goal_state
+  s = randperm(num_states,1); % current state
+  cnt = 0;
+  while s ~= goal_state
+    actions = find(R(s,:) >= 0) % find num of possible actions
+    num_actions = size(actions,2)
+    if ( num_actions > 0 )
+      % policy for selecting action goes here
+      action_taken = ( round(rand() * (num_actions - 1)) ) + 1
+    else
+      display('not possible');
+    end
+
+    q_max = max(Q,[],2);
+    Q(s,action_taken) = R(s,action_taken) + GAMMA * q_max(action_taken);
+    s = action_taken;
+    cnt = cnt + 1;
+    if( cnt > max_while )
+      break;
+    end
   end
 end
+
+Q
 
 % 4) Traverse from any starting point
 

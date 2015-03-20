@@ -1,4 +1,7 @@
 function qlearn
+% TODO: probability for movement
+% TODO: verify using the correct update formula 
+% TODO: traversal, debug info plot
 %clc; clear all; close all;
 
 global S; S = 7;
@@ -121,7 +124,7 @@ end
 
 Q
 
-% 4) Traverse from any starting point
+% TODO: 4) Traverse from any starting point
 
 
 

@@ -33,34 +33,19 @@ global COL;
 num_states = ROW*COL;
 Q(num_states,num_states) = 0;
 
-% This is not working yet
-% for r = 1:ROW
-%     % initialize the whole row, just use 1 as col
-%     i = rc2indx(ROW,COL,r,1);
-%     Q(i,:) = -inf;
-%     
-%     for c = 1:COL
-%         j = rc2indx(ROW,COL,r,c);
+% 1st loop represent current node
+% 2nd loop represent visiting node, check if it is clear path, or obstacle
+for qx = 1:num_states
+    [cr,cc] = indx2rc(ROW,COL,qx);  % (c)urrent (r)ow and (c)ol
+    for qy = 1:num_states
+        [vr,vc] = indx2rc(ROW,COL,qy);
 %         if( map(r,c) == C )
 %             Q(i,j) = 1;
 %         elseif( map(r,c) == G )
 %             Q(i,j) = 100;
 %         end
-%         
-%     end % for c = 1:COL
-% end % for r = 1:ROW
-% 
-% for qi = 1:num_states
-%     Q(qi,:) = -inf;
-%     for qj = 1:num_states
-%         [r,c] = indx2rc(ROW,COL,qj);
-%         if( map(r,c) == C )
-%             Q(i,j) = 1;
-%         elseif( map(r,c) == G )
-%             Q(i,j) = 100;
-%         end
-%     end
-% end
+    end
+end
 
 % 2) set up constants alpha, gamma, probabilities of movement, 
 % num of episodes

@@ -1,6 +1,5 @@
 function qlearn
 % TODO: probability for movement
-% TODO: verify using the correct update formula 
 % TODO: traversal, debug info plot
 
 clc; clear all; close all;

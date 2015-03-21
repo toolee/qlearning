@@ -2,17 +2,18 @@ function qlearn
 % TODO: probability for movement
 % TODO: verify using the correct update formula 
 % TODO: traversal, debug info plot
-%clc; clear all; close all;
 
-global S; S = 7;
-global G; G = 8;
-global C; C = 1;
-global O; O = 0;
+clc; clear all; close all;
 
 % 0) Create map, Draw the map
 %
 % It should show Q values, Destination.
 % For each episode, update the Q values.
+
+global S; S = 7;
+global G; G = 8;
+global C; C = 1;
+global O; O = 0;
 
 small_map = ...
       [ C, C, C, C;
@@ -97,12 +98,13 @@ end
 
 R
 % 2) set up constants alpha, gamma, probabilities of movement, 
-global ALPHA; ALPHA = 0.1;
-global GAMMA; GAMMA = 0.5;
+global ALPHA; ALPHA = 0.9;
+global GAMMA; GAMMA = 0.2;
 global EPISODES; EPISODES = 5000;
 
-Q = zeros(size(R));
+
 % 3) loop thru num of EPISODES
+Q = zeros(size(R));
 for e = 1:EPISODES
   s = randperm(num_states,1); % current state
   while s ~= goal_state
@@ -117,7 +119,7 @@ for e = 1:EPISODES
 
     q_max = max(Q,[],2);
     fs = actions(action_taken);
-    Q(s,fs) = R(s,fs) + GAMMA * q_max(fs);
+    Q(s,fs) = Q(s,fs) + ALPHA * ( R(s,fs) + GAMMA * q_max(fs) - Q(s,fs) );
     s = fs;
   end
 end

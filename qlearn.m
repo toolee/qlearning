@@ -5,11 +5,12 @@ function qlearn
 
 clc; clear all; close all;
 
-% 0) Create map, Draw the map
+%--------------------------------------------------------------------------
+% 1) Create map, Draw the map
 %
 % It should show Q values, Destination.
 % For each episode, update the Q values.
-
+%--------------------------------------------------------------------------
 global S; S = 7;
 global G; G = 8;
 global C; C = 1;
@@ -33,8 +34,21 @@ map = small_map2;
 global ROW;
 global COL;
 [ROW,COL] = size(map);
+display(sprintf('INFO: Map size = %d x %d',ROW,COL));
+display(sprintf('INFO: 0 - obstacle | 1 - clear path | 7 - start | 8 - goal'));
 
-% Validate map, and capture start, goal position
+% draw a map base
+axis([1 COL+1 1 ROW+1]);
+grid on;
+hold on;
+set(gca,'XTick',[1:1:COL]);
+set(gca,'YTick',[1:1:ROW]);
+set(gca,'xaxislocation','top','ydir','reverse');
+
+
+%--------------------------------------------------------------------------
+% 2) Validate map, and capture start, goal position
+%--------------------------------------------------------------------------
 num_start = 0;
 num_goal = 0;
 for r = 1:ROW
@@ -50,15 +64,17 @@ for r = 1:ROW
   end
 end
 if( num_start > 1 || num_goal > 1 )
-  display('Too many start or goal');
-  exit 0;
+  display('ERROR: Validate map: Too many start or goal');
+  return;
 end
 
-% 1) convert map to immediate reward matrix (node base)
-% 100  - goal
-% 0    - clear path
-% -inf - obstacle, self, not reachable, diagonal...
-
+%--------------------------------------------------------------------------
+% 3) convert map into immediate reward matrix (node base) using following
+%
+%     100  - goal
+%     0    - clear path
+%     -inf - obstacle, self, not reachable, or diagonal...
+%--------------------------------------------------------------------------
 num_states = ROW*COL;
 start_state = rc2indx(start_r,start_c);
 goal_state = rc2indx(goal_r,goal_c);
@@ -97,19 +113,26 @@ for qx = 1:num_states
 end
 
 R
-% 2) set up constants alpha, gamma, probabilities of movement, 
+
+%--------------------------------------------------------------------------
+% 4) set up constants alpha, gamma, probabilities of movement, 
+%--------------------------------------------------------------------------
 global ALPHA; ALPHA = 0.9;
 global GAMMA; GAMMA = 0.2;
 global EPISODES; EPISODES = 5000;
+display(sprintf('INFO: alpha %f',ALPHA));
+display(sprintf('INFO: gamma %f',GAMMA));
+display(sprintf('INFO: max episode %f',EPISODES));
 
-
-% 3) loop thru num of EPISODES
+%--------------------------------------------------------------------------
+% 5) loop thru num of EPISODES
+%--------------------------------------------------------------------------
 Q = zeros(size(R));
 for e = 1:EPISODES
   s = randperm(num_states,1); % current state
   while s ~= goal_state
-    actions = find(R(s,:) >= 0); % find num of possible actions
-    num_actions = size(actions,2);
+    avail_actions = find(R(s,:) >= 0); % find num of possible actions
+    num_actions = size(avail_actions,2);
     if ( num_actions > 0 )
       % policy for selecting action goes here
       action_taken = ( round(rand() * (num_actions - 1)) ) + 1;
@@ -118,7 +141,8 @@ for e = 1:EPISODES
     end
 
     q_max = max(Q,[],2);
-    fs = actions(action_taken);
+    % future state, or the action
+    fs = avail_actions(action_taken);
     Q(s,fs) = Q(s,fs) + ALPHA * ( R(s,fs) + GAMMA * q_max(fs) - Q(s,fs) );
     s = fs;
   end
@@ -126,7 +150,9 @@ end
 
 Q
 
-% TODO: 4) Traverse from any starting point
+%--------------------------------------------------------------------------
+% 6) Traverse from any starting point
+%--------------------------------------------------------------------------
 
 
 

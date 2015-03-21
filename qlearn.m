@@ -37,17 +37,9 @@ global COL;
 display(sprintf('INFO: Map size = %d x %d',ROW,COL));
 display(sprintf('INFO: 0 - obstacle | 1 - clear path | 7 - start | 8 - goal'));
 
-% draw a map base
-axis([1 COL+1 1 ROW+1]);
-grid on;
-hold on;
-set(gca,'XTick',[1:1:COL]);
-set(gca,'YTick',[1:1:ROW]);
-set(gca,'xaxislocation','top','ydir','reverse');
-
-
 %--------------------------------------------------------------------------
 % 2) Validate map, and capture start, goal position
+% Draw the map if valid
 %--------------------------------------------------------------------------
 num_start = 0;
 num_goal = 0;
@@ -66,6 +58,25 @@ end
 if( num_start > 1 || num_goal > 1 )
   display('ERROR: Validate map: Too many start or goal');
   return;
+end
+
+% draw a map
+axis([1 COL+1 1 ROW+1]);
+grid on;
+hold on;
+set(gca,'XTick',[1:1:COL]);
+set(gca,'YTick',[1:1:ROW]);
+set(gca,'xaxislocation','top','ydir','reverse');
+
+% plot start, goal, obstacles
+plot(start_c+0.5,start_r+0.5,'ro');
+plot(goal_c+0.5,goal_r+0.5,'go');
+for ri = 1:ROW
+    for ci = 1:COL
+        if(map(ri,ci)==O) % if it is a obstacle draw it
+            plot(ci+0.5,ri+0.5,'kx');
+        end
+    end
 end
 
 %--------------------------------------------------------------------------
@@ -145,6 +156,7 @@ for e = 1:EPISODES
     fs = avail_actions(action_taken);
     Q(s,fs) = Q(s,fs) + ALPHA * ( R(s,fs) + GAMMA * q_max(fs) - Q(s,fs) );
     s = fs;
+    
   end
 end
 

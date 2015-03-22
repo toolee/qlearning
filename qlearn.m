@@ -1,6 +1,6 @@
 function qlearn
 % TODO: probability for movement
-% TODO: traversal, debug info plot
+l% TODO: traversal, debug info plot
 
 clc; clear all; close all;
 
@@ -71,11 +71,11 @@ set(gca,'xaxislocation','top','ydir','reverse');
 plot(start_c+0.5,start_r+0.5,'ro');
 plot(goal_c+0.5,goal_r+0.5,'go');
 for ri = 1:ROW
-    for ci = 1:COL
-        if(map(ri,ci)==O) % if it is a obstacle draw it
-            plot(ci+0.5,ri+0.5,'kx');
-        end
+  for ci = 1:COL
+    if(map(ri,ci)==O) % if it is a obstacle draw it
+      plot(ci+0.5,ri+0.5,'kx');
     end
+  end
 end
 
 %--------------------------------------------------------------------------
@@ -93,33 +93,33 @@ R(num_states,num_states) = 0;
 % 1st loop represent current node
 % 2nd loop represent visiting node, check if it is clear path, or obstacle
 for qx = 1:num_states
-    [cr,cc] = indx2rc(qx);  % (c)urrent (r)ow and (c)ol
-    if( map(cr,cc) == O ) % current node is an obstacle
-      R(qx,:) = -inf;
-      continue;
+  [cr,cc] = indx2rc(qx);  % (c)urrent (r)ow and (c)ol
+  if( map(cr,cc) == O ) % current node is an obstacle
+    R(qx,:) = -inf;
+    continue;
+  end
+  for qy = 1:num_states
+    [vr,vc] = indx2rc(qy);
+    if ( abs(vr-cr) == 1 && cc == vc ) % +/1 row
+      if ( map(vr,vc) == C || map(vr,vc) == S )
+        R(qx,qy) = 0;
+      elseif( map(vr,vc) == G )
+        R(qx,qy) = 100;
+      else
+        R(qx,qy) = -inf;
+      end
+    elseif (abs(vc-cc) == 1 && cr == vr ) % +/- col
+      if ( map(vr,vc) == C || map(vr,vc) == S )
+        R(qx,qy) = 0;
+      elseif( map(vr,vc) == G )
+        R(qx,qy) = 100;
+      else
+        R(qx,qy) = -inf;
+      end
+    else % diagonal
+      R(qx,qy) = -inf;
     end
-    for qy = 1:num_states
-        [vr,vc] = indx2rc(qy);
-        if ( abs(vr-cr) == 1 && cc == vc ) % +/1 row
-          if ( map(vr,vc) == C || map(vr,vc) == S )
-            R(qx,qy) = 0;
-          elseif( map(vr,vc) == G )
-            R(qx,qy) = 100;
-          else
-            R(qx,qy) = -inf;
-          end
-        elseif (abs(vc-cc) == 1 && cr == vr ) % +/- col
-          if ( map(vr,vc) == C || map(vr,vc) == S )
-            R(qx,qy) = 0;
-          elseif( map(vr,vc) == G )
-            R(qx,qy) = 100;
-          else
-            R(qx,qy) = -inf;
-          end
-        else % diagonal
-          R(qx,qy) = -inf;
-        end
-    end
+  end
 end
 
 R
@@ -149,12 +149,24 @@ for e = 1:EPISODES
     else
       break;  % started on an obstacle state
     end
-
+    
     q_max = max(Q,[],2);
     % future state, or the action
     fs = avail_actions(action_taken);
     Q(s,fs) = Q(s,fs) + ALPHA * ( R(s,fs) + GAMMA * q_max(fs) - Q(s,fs) );
     s = fs;
+    
+    for r = 1:ROW
+      for c = 1:COL
+        %    r-1
+        % c-1 o c+1
+        %    r+1
+        tmp_r = r - 1;
+        if ( tmp_r < 1 || ROW > tmp_r )
+          
+        end
+      end
+    end
     
   end
 end
@@ -164,6 +176,7 @@ Q
 %--------------------------------------------------------------------------
 % 6) Traverse from any starting point
 %--------------------------------------------------------------------------
+
 
 
 

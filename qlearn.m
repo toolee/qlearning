@@ -1,8 +1,8 @@
 function qlearn
 % TODO: probability for movement
-l% TODO: traversal, debug info plot
+% TODO: traversal, debug info plot
 
-clc; clear all; close all;
+%clc; clear all; close all;
 
 %--------------------------------------------------------------------------
 % 1) Create map, Draw the map
@@ -27,7 +27,25 @@ small_map2 = ...
         C, G, C;
         ];
 
-map = small_map2;
+small_map3 = ...
+      [ S, C, C;
+        O, C, C;
+        C, C, G;
+        ];
+
+large_map = ...                                                                                                                                                                                                   
+        [ C, C, C, C, O, C, C, C, C, C;                                                                                                                                                                             
+          C, O, O, C, O, C, C, C, C, C;                                                                                                                                                                             
+          C, S, O, C, O, C, C, C, C, C;                                                                                                                                                                             
+          C, O, O, C, O, C, C, C, C, C;                                                                                                                                                                             
+          C, C, C, C, C, C, C, C, O, C;                                                                                                                                                                             
+          C, C, C, C, C, C, C, C, O, C;                                                                                                                                                                             
+          C, C, C, C, C, C, C, C, O, C;                                                                                                                                                                             
+          O, O, O, O, O, O, O, O, O, C;                                                                                                                                                                             
+          C, C, C, C, C, C, C, C, C, C;                                                                                                                                                                             
+          G, C, C, C, C, C, C, C, C, C;                                                                                                                                                                             
+        ];
+map = large_map;
 
 
 global ROW;
@@ -69,7 +87,7 @@ set(gca,'xaxislocation','top','ydir','reverse');
 
 % plot start, goal, obstacles
 plot(start_c+0.5,start_r+0.5,'ro');
-plot(goal_c+0.5,goal_r+0.5,'go');
+plot(goal_c+0.5,goal_r+0.5,'ko');
 for ri = 1:ROW
   for ci = 1:COL
     if(map(ri,ci)==O) % if it is a obstacle draw it
@@ -127,9 +145,9 @@ R
 %--------------------------------------------------------------------------
 % 4) set up constants alpha, gamma, probabilities of movement, 
 %--------------------------------------------------------------------------
-global ALPHA; ALPHA = 0.9;
-global GAMMA; GAMMA = 0.2;
-global EPISODES; EPISODES = 5000;
+global ALPHA; ALPHA = 0.5;
+global GAMMA; GAMMA = 0.5;
+global EPISODES; EPISODES = 20;
 display(sprintf('INFO: alpha %f',ALPHA));
 display(sprintf('INFO: gamma %f',GAMMA));
 display(sprintf('INFO: max episode %f',EPISODES));
@@ -137,6 +155,9 @@ display(sprintf('INFO: max episode %f',EPISODES));
 %--------------------------------------------------------------------------
 % 5) loop thru num of EPISODES
 %--------------------------------------------------------------------------
+
+textbox(ROW,COL) = struct('up',[],'down',[],'left',[],'right',[]);
+
 Q = zeros(size(R));
 for e = 1:EPISODES
   s = randperm(num_states,1); % current state
@@ -147,27 +168,51 @@ for e = 1:EPISODES
       % policy for selecting action goes here
       action_taken = ( round(rand() * (num_actions - 1)) ) + 1;
     else
+%      display('on obstacles');
       break;  % started on an obstacle state
     end
     
+    % get maximum q value for all states
     q_max = max(Q,[],2);
     % future state, or the action
     fs = avail_actions(action_taken);
     Q(s,fs) = Q(s,fs) + ALPHA * ( R(s,fs) + GAMMA * q_max(fs) - Q(s,fs) );
-    s = fs;
-    
-    for r = 1:ROW
-      for c = 1:COL
-        %    r-1
-        % c-1 o c+1
-        %    r+1
-        tmp_r = r - 1;
-        if ( tmp_r < 1 || ROW > tmp_r )
-          
-        end
+
+
+    % update plot
+    [r,c] = indx2rc(s);
+    [fr,fc] = indx2rc(fs);
+
+    str = sprintf('%0.2f', Q(s,fs));
+    if ( fr - r == 1 )  % r+1
+      if(isempty(textbox(r,c).down))
+        textbox(r,c).down = text(c+0.5, r+0.9,str);
+      else
+        set(textbox(r,c).down,'String',str);
       end
+    elseif ( r - fr == 1) % r-1
+      if(isempty(textbox(r,c).up))
+        textbox(r,c).up = text(c+0.5, r+0.1,str);
+      else
+        set(textbox(r,c).down,'String',str);
+      end
+    elseif( fc - c == 1) % c+1
+      if(isempty(textbox(r,c).right))
+        textbox(r,c).right = text(c+0.8, r+0.5,str);
+      else
+        set(textbox(r,c).right,'String',str);
+      end
+    elseif( c - fc == 1) % c-1
+      if(isempty(textbox(r,c).left))
+        textbox(r,c).left = text(c+0.1, r+0.5,str);
+      else
+        set(textbox(r,c).left,'String',str);
+      end
+    else
+      display('should not be here, bug');
     end
-    
+    %pause(0.0000001); 
+    s = fs;
   end
 end
 

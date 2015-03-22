@@ -2,7 +2,7 @@ function qlearn
 % TODO: probability for movement
 % TODO: traversal, debug info plot
 
-%clc; clear all; close all;
+clc; clear all; close all;
 
 %--------------------------------------------------------------------------
 % 1) Create map, Draw the map
@@ -17,9 +17,9 @@ global O; O = 0;
 
 small_map = ...
       [ C, C, C, C;
-        C, O, O, C;
-        C, S, O, C;
-        C, O, C, G;
+        C, C, C, C;
+        C, S, C, C;
+        C, C, C, G;
         ];
 small_map2 = ...
       [ S, O, C;
@@ -145,22 +145,30 @@ R
 %--------------------------------------------------------------------------
 % 4) set up constants alpha, gamma, probabilities of movement, 
 %--------------------------------------------------------------------------
-global ALPHA; ALPHA = 0.5;
-global GAMMA; GAMMA = 0.5;
-global EPISODES; EPISODES = 20;
-display(sprintf('INFO: alpha %f',ALPHA));
-display(sprintf('INFO: gamma %f',GAMMA));
+global EPISODES; EPISODES = 100;
 display(sprintf('INFO: max episode %f',EPISODES));
+global ALPHA; ALPHA = [0.99]; %%1/num_states;%0.5; %1/Num states
+display(sprintf('INFO: alpha %f',ALPHA));
+global GAMMA; GAMMA = [0.99];
+display(sprintf('INFO: gamma %f',GAMMA));
+
 
 %--------------------------------------------------------------------------
 % 5) loop thru num of EPISODES
 %--------------------------------------------------------------------------
+for param_i = 1:size(ALPHA,2)
 
 textbox(ROW,COL) = struct('up',[],'down',[],'left',[],'right',[]);
+episode_tb_hldr = [];
 
 Q = zeros(size(R));
 for e = 1:EPISODES
   s = randperm(num_states,1); % current state
+  if(isempty(episode_tb_hldr))
+    episode_tb_hldr = text(0.5,0.5,sprintf('e%d',e));
+  else
+    set(episode_tb_hldr,'String',sprintf('e%d',e));
+  end
   while s ~= goal_state
     avail_actions = find(R(s,:) >= 0); % find num of possible actions
     num_actions = size(avail_actions,2);
@@ -176,7 +184,7 @@ for e = 1:EPISODES
     q_max = max(Q,[],2);
     % future state, or the action
     fs = avail_actions(action_taken);
-    Q(s,fs) = Q(s,fs) + ALPHA * ( R(s,fs) + GAMMA * q_max(fs) - Q(s,fs) );
+    Q(s,fs) = Q(s,fs) + ALPHA(param_i) * ( R(s,fs) + GAMMA(param_i) * q_max(fs) - Q(s,fs) );
 
 
     % update plot
@@ -194,7 +202,7 @@ for e = 1:EPISODES
       if(isempty(textbox(r,c).up))
         textbox(r,c).up = text(c+0.5, r+0.1,str);
       else
-        set(textbox(r,c).down,'String',str);
+        set(textbox(r,c).up,'String',str);
       end
     elseif( fc - c == 1) % c+1
       if(isempty(textbox(r,c).right))
@@ -204,19 +212,26 @@ for e = 1:EPISODES
       end
     elseif( c - fc == 1) % c-1
       if(isempty(textbox(r,c).left))
-        textbox(r,c).left = text(c+0.1, r+0.5,str);
+        textbox(r,c).left = text(c+0.05, r+0.5,str);
       else
         set(textbox(r,c).left,'String',str);
       end
     else
       display('should not be here, bug');
     end
-    %pause(0.0000001); 
+    %pause(0.001); 
+    drawnow;
     s = fs;
   end
 end
 
+
+saveas(gcf,sprintf('a%0.2fg%0.2fe%d.jpg',ALPHA(param_i),GAMMA(param_i),EPISODES),'jpg');
+end
+
 Q
+
+
 
 %--------------------------------------------------------------------------
 % 6) Traverse from any starting point

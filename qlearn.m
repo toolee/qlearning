@@ -47,7 +47,7 @@ large_map = ...
         C, C, C, C, C, C, C, C, C, C;
         G, C, C, C, C, C, C, C, C, C;
         ];
-map = small_map;
+map = large_map;
 
 
 global ROW;
@@ -147,14 +147,15 @@ R;
 %--------------------------------------------------------------------------
 % 4) set up constants alpha, gamma, probabilities of movement, 
 %--------------------------------------------------------------------------
-global EPISODES; EPISODES = 20;
+global EPISODES; EPISODES = 100;
 display(sprintf('INFO: max episode %f',EPISODES));
 global STEPS; STEPS = 150;
 display(sprintf('INFO: max step %f',STEPS));
-global ALPHA; ALPHA = [0.99]; % learning rate
+global ALPHA; ALPHA = [0.8]; % learning rate
 display(sprintf('INFO: alpha %f',ALPHA));
-global GAMMA; GAMMA = [0.99]; % discount rate
+global GAMMA; GAMMA = [0.8]; % discount rate
 display(sprintf('INFO: gamma %f',GAMMA));
+non_deterministic_world = 0;
 
 
 %--------------------------------------------------------------------------
@@ -193,16 +194,23 @@ for e = 1:EPISODES
       break;  % started on an obstacle state
     end
     
-    % transition function for observed state based on selected action
-    fs = avail_actions(action_taken);
-    
     % get maximum q value for all states
     q_max = max(Q,[],2);
-    Q(s,fs) = Q(s,fs) + ALPHA(param_i) * ( R(s,fs) + GAMMA(param_i) * q_max(fs) - Q(s,fs) );
+    
+    if( non_deterministic_world == 1)
+      % transition function for observed state based on selected action
+      ds = avail_actions(action_taken);
+      os = transition_function(s,ds);
+      Q(s,ds) = Q(s,os) + ALPHA(param_i) * ( R(s,ds) + GAMMA(param_i) * q_max(ds) - Q(s,ds) );
+      textbox = plot_value(Q,s,ds,textbox);
+      s = os;
+    else
+      fs = avail_actions(action_taken);
+      Q(s,fs) = Q(s,fs) + ALPHA(param_i) * ( R(s,fs) + GAMMA(param_i) * q_max(fs) - Q(s,fs) );
+      textbox = plot_value(Q,s,fs,textbox);
+      s = fs;
+    end
 
-
-    textbox = plot_value(Q,s,fs,textbox);
-    s = fs;
     steps = steps + 1;
   end
 end
@@ -218,9 +226,89 @@ Q;
 %--------------------------------------------------------------------------
 
 function observed_state = transition_function(s,a)
-global DESIRED_PR; DESIRED_PR = 0.6;
-global OTHER_PR;   OTHER_PR   = 0.3;
-global INPLACE_PR; INPLACE_PR = 0.1;
+global DESIRED_PR;     DESIRED_PR     = 0.6;
+global OTHER_DIR_PR;   OTHER_DIR_PR   = 0.3;
+global INPLACE_PR;     INPLACE_PR     = 0.1;
+global ROW;
+global COL;
+
+
+bucket(1) = DESIRED_PR;
+bucket(2) = bucket(1) + OTHER_DIR_PR;
+bucket(3) = bucket(2) + INPLACE_PR;
+
+r_action = rand();
+
+if( r_action <= bucket(1) )
+  observed_state = a;
+elseif( r_action <= bucket(2) )
+  RIGHT = 1; DOWN = 2; LEFT = 3; UP = 4;
+  [r,c] = indx2rc(s);
+  [fr,fc] = indx2rc(a);
+  avail_actions = [];
+  if ( fr - r == -1 )      % UP
+    avail_actions = [RIGHT DOWN LEFT   ];
+  elseif ( fc - c == 1)    % RIGHT
+    avail_actions = [      DOWN LEFT UP];
+  elseif ( fr - r == 1 )   % DOWN
+    avail_actions = [RIGHT      LEFT UP];
+  elseif ( fc - c == -1 )  % LEFT
+    avail_actions = [RIGHT DOWN      UP];
+  else
+    display('bug 1');
+  end
+  
+  rand_var = rand();
+  if(rand_var <= 0.33)
+    indx = 1;
+  elseif(rand_var <= 0.66)
+    indx = 2;
+  elseif(rand_var <= 1)
+    indx = 3;
+  else
+    display('bug 2');
+  end
+  
+  if( avail_actions(indx) == RIGHT )
+    if( c + 1 <= COL )
+      fc = c + 1;
+      observed_state = rc2indx(fr,fc);
+    else
+      observed_state = s;
+    end
+  elseif( avail_actions(indx) == DOWN )
+    if( r + 1 <= ROW )
+      fr = r + 1;
+      observed_state = rc2indx(fr,fc);
+    else
+      observed_state = s;
+    end
+  elseif( avail_actions(indx) == LEFT )
+    if( c - 1 >= 1 )
+      fc = c - 1;
+      observed_state = rc2indx(fr,fc);
+    else
+      observed_state = s;
+    end
+  elseif( avail_actions(indx) == UP )
+    if( r - 1 >= 1 )
+      fr = r - 1;
+      observed_state = rc2indx(fr,fc);
+    else
+      observed_state = s;
+    end
+  else
+    display('bug 3');
+  end
+  
+  %display('not picking orig action');
+else
+  observed_state = s;
+end
+
+
+
+
 
 function textbox = plot_value(Q,s,fs,textbox)
 % update plot

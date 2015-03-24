@@ -183,20 +183,21 @@ for e = 1:EPISODES
       set(steps_tb_hldr,'String',sprintf('step:%d',steps));
     end
     
-    avail_actions = find(R(s,:) >= 0); % find num of possible actions
+    % policy for selecting action goes here
+    % TODO: add different policy routine: greedy, e-greedy, softmax
+    avail_actions = find(R(s,:) >= 0); % find num of possible actions or exploration bonus
     num_actions = size(avail_actions,2);
     if ( num_actions > 0 )
-      % policy for selecting action goes here
       action_taken = ( round(rand() * (num_actions - 1)) ) + 1;
     else
-%      display('on obstacles');
       break;  % started on an obstacle state
     end
     
+    % transition function for observed state based on selected action
+    fs = avail_actions(action_taken);
+    
     % get maximum q value for all states
     q_max = max(Q,[],2);
-    % future state, or the action
-    fs = avail_actions(action_taken);
     Q(s,fs) = Q(s,fs) + ALPHA(param_i) * ( R(s,fs) + GAMMA(param_i) * q_max(fs) - Q(s,fs) );
 
 
@@ -216,43 +217,46 @@ Q;
 % 6) Traverse from any starting point
 %--------------------------------------------------------------------------
 
-
+function observed_state = transition_function(s,a)
+global DESIRED_PR; DESIRED_PR = 0.6;
+global OTHER_PR;   OTHER_PR   = 0.3;
+global INPLACE_PR; INPLACE_PR = 0.1;
 
 function textbox = plot_value(Q,s,fs,textbox)
-    % update plot
-    [r,c] = indx2rc(s);
-    [fr,fc] = indx2rc(fs);
+% update plot
+[r,c] = indx2rc(s);
+[fr,fc] = indx2rc(fs);
 
-    str = sprintf('%0.2f', Q(s,fs));
-    if ( fr - r == 1 )  % r+1
-      if(isempty(textbox(r,c).down))
-        textbox(r,c).down = text(c+0.5, r+0.9,str);
-      else
-        set(textbox(r,c).down,'String',str);
-      end
-    elseif ( r - fr == 1) % r-1
-      if(isempty(textbox(r,c).up))
-        textbox(r,c).up = text(c+0.5, r+0.1,str);
-      else
-        set(textbox(r,c).up,'String',str);
-      end
-    elseif( fc - c == 1) % c+1
-      if(isempty(textbox(r,c).right))
-        textbox(r,c).right = text(c+0.8, r+0.5,str);
-      else
-        set(textbox(r,c).right,'String',str);
-      end
-    elseif( c - fc == 1) % c-1
-      if(isempty(textbox(r,c).left))
-        textbox(r,c).left = text(c+0.05, r+0.5,str);
-      else
-        set(textbox(r,c).left,'String',str);
-      end
-    else
-      display('should not be here, bug');
-    end
-    %pause(0.001);
-    drawnow;
+str = sprintf('%0.2f', Q(s,fs));
+if ( fr - r == 1 )  % r+1
+  if(isempty(textbox(r,c).down))
+    textbox(r,c).down = text(c+0.5, r+0.9,str);
+  else
+    set(textbox(r,c).down,'String',str);
+  end
+elseif ( r - fr == 1) % r-1
+  if(isempty(textbox(r,c).up))
+    textbox(r,c).up = text(c+0.5, r+0.1,str);
+  else
+    set(textbox(r,c).up,'String',str);
+  end
+elseif( fc - c == 1) % c+1
+  if(isempty(textbox(r,c).right))
+    textbox(r,c).right = text(c+0.8, r+0.5,str);
+  else
+    set(textbox(r,c).right,'String',str);
+  end
+elseif( c - fc == 1) % c-1
+  if(isempty(textbox(r,c).left))
+    textbox(r,c).left = text(c+0.05, r+0.5,str);
+  else
+    set(textbox(r,c).left,'String',str);
+  end
+else
+  display('should not be here, bug');
+end
+%pause(0.001);
+drawnow;
 
 
 %--------------------------------------------------------------------------

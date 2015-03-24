@@ -140,16 +140,18 @@ for qx = 1:num_states
   end
 end
 
-R
+R;
 
 %--------------------------------------------------------------------------
 % 4) set up constants alpha, gamma, probabilities of movement, 
 %--------------------------------------------------------------------------
 global EPISODES; EPISODES = 100;
 display(sprintf('INFO: max episode %f',EPISODES));
-global ALPHA; ALPHA = [0.99]; %%1/num_states;%0.5; %1/Num states
+global STEPS; STEPS = 150;
+display(sprintf('INFO: max step %f',STEPS));
+global ALPHA; ALPHA = [0.99]; % learning rate
 display(sprintf('INFO: alpha %f',ALPHA));
-global GAMMA; GAMMA = [0.99];
+global GAMMA; GAMMA = [0.99]; % discount rate
 display(sprintf('INFO: gamma %f',GAMMA));
 
 
@@ -160,16 +162,25 @@ for param_i = 1:size(ALPHA,2)
 
 textbox(ROW,COL) = struct('up',[],'down',[],'left',[],'right',[]);
 episode_tb_hldr = [];
+steps_tb_hldr = [];
 
 Q = zeros(size(R));
 for e = 1:EPISODES
+  steps = 1; % reset the number of steps
   s = randperm(num_states,1); % current state
   if(isempty(episode_tb_hldr))
-    episode_tb_hldr = text(0.5,0.5,sprintf('e%d',e));
+    episode_tb_hldr = text(0.5,0.8,sprintf('episode:%d',e));
   else
-    set(episode_tb_hldr,'String',sprintf('e%d',e));
+    set(episode_tb_hldr,'String',sprintf('episode:%d',e));
   end
-  while s ~= goal_state
+  while ( s ~= goal_state && steps <= STEPS )
+    
+    if(isempty(steps_tb_hldr))
+      steps_tb_hldr = text(0.5,1,sprintf('step:%d',steps));
+    else
+      set(steps_tb_hldr,'String',sprintf('step:%d',steps));
+    end
+    
     avail_actions = find(R(s,:) >= 0); % find num of possible actions
     num_actions = size(avail_actions,2);
     if ( num_actions > 0 )
@@ -222,6 +233,7 @@ for e = 1:EPISODES
     %pause(0.001); 
     drawnow;
     s = fs;
+    steps = steps + 1;
   end
 end
 
@@ -229,9 +241,7 @@ end
 saveas(gcf,sprintf('a%0.2fg%0.2fe%d.jpg',ALPHA(param_i),GAMMA(param_i),EPISODES),'jpg');
 end
 
-Q
-
-
+Q;
 
 %--------------------------------------------------------------------------
 % 6) Traverse from any starting point

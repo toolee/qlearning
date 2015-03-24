@@ -2,6 +2,7 @@ function qlearn
 % DONE: probability for movement
 % DONE: traversal, debug info plot
 % DONE: max steps per episode
+% TODO: still need update policy
 
 clc; clear all; close all;
 
@@ -17,9 +18,9 @@ global C; C = 1;
 global O; O = 0;
 
 small_map = ...
-      [ C, C, C, C;
-        C, C, C, C;
-        C, S, C, C;
+      [ S, C, C, C;
+        C, C, O, C;
+        C, O, O, C;
         C, C, C, G;
         ];
 small_map2 = ...
@@ -152,7 +153,7 @@ global STEPS; STEPS = 150;
 display(sprintf('INFO: max step %f',STEPS));
 global ALPHA; ALPHA = [0.5]; % learning rate
 display(sprintf('INFO: alpha %f',ALPHA));
-global GAMMA; GAMMA = [0.9]; % discount rate
+global GAMMA; GAMMA = [0.5]; % discount rate
 display(sprintf('INFO: gamma %f',GAMMA));
 non_deterministic_world = 1;
 
@@ -225,6 +226,7 @@ Q;
 % 6) Traverse from any starting point
 %--------------------------------------------------------------------------
 qi = start_state;
+plot_cnt = 0;
 while qi ~= goal_state
   [max_value,indx] = max(Q(qi,:));
   [r,c] = indx2rc(qi);
@@ -242,6 +244,11 @@ while qi ~= goal_state
   end
   plot(xx,yy);
   qi = indx;
+  plot_cnt = plot_cnt + 1;
+  if( plot_cnt > num_states )
+    display('Did not converge');
+    break;
+  end
 end
 
 

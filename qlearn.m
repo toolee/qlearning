@@ -46,8 +46,8 @@ large_map = ...
         C, C, C, C, C, C, C, C, C, C;
         G, C, C, C, C, C, C, C, C, C;
         ];
-map = large_map;
-
+map = small_map;
+%map = large_map;
 
 global ROW;
 global COL;
@@ -150,11 +150,11 @@ global EPISODES; EPISODES = 100;
 display(sprintf('INFO: max episode %f',EPISODES));
 global STEPS; STEPS = 150;
 display(sprintf('INFO: max step %f',STEPS));
-global ALPHA; ALPHA = [0.9]; % learning rate
+global ALPHA; ALPHA = [0.5]; % learning rate
 display(sprintf('INFO: alpha %f',ALPHA));
 global GAMMA; GAMMA = [0.9]; % discount rate
 display(sprintf('INFO: gamma %f',GAMMA));
-non_deterministic_world = 0;
+non_deterministic_world = 1;
 
 
 %--------------------------------------------------------------------------
@@ -200,7 +200,8 @@ for e = 1:EPISODES
       % transition function for observed state based on selected action
       ds = avail_actions(action_taken);
       os = transition_function(s,ds);
-      Q(s,ds) = Q(s,os) + ALPHA(param_i) * ( R(s,ds) + GAMMA(param_i) * q_max(ds) - Q(s,ds) );
+      %Q(s,ds) = Q(s,os) + ALPHA(param_i) * ( R(s,ds) + GAMMA(param_i) * q_max(ds) - Q(s,ds) );
+      Q(s,ds) = Q(s,ds) + ALPHA(param_i) * ( R(s,ds) + GAMMA(param_i) * q_max(os) - Q(s,ds) );
       textbox = plot_value(Q,s,ds,textbox);
       s = os;
     else

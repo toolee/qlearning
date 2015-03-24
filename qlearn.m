@@ -1,8 +1,7 @@
 function qlearn
-% TODO: probability for movement
-% TODO: traversal, debug info plot
+% DONE: probability for movement
+% DONE: traversal, debug info plot
 % DONE: max steps per episode
-% 
 
 clc; clear all; close all;
 
@@ -151,9 +150,9 @@ global EPISODES; EPISODES = 100;
 display(sprintf('INFO: max episode %f',EPISODES));
 global STEPS; STEPS = 150;
 display(sprintf('INFO: max step %f',STEPS));
-global ALPHA; ALPHA = [0.8]; % learning rate
+global ALPHA; ALPHA = [0.9]; % learning rate
 display(sprintf('INFO: alpha %f',ALPHA));
-global GAMMA; GAMMA = [0.8]; % discount rate
+global GAMMA; GAMMA = [0.9]; % discount rate
 display(sprintf('INFO: gamma %f',GAMMA));
 non_deterministic_world = 0;
 
@@ -224,6 +223,28 @@ Q;
 %--------------------------------------------------------------------------
 % 6) Traverse from any starting point
 %--------------------------------------------------------------------------
+qi = start_state;
+while qi ~= goal_state
+  [max_value,indx] = max(Q(qi,:));
+  [r,c] = indx2rc(qi);
+  [fr,fc] = indx2rc(indx);
+  if( c > fc )
+    xx = [fc+0.5 c+0.5];
+  else
+    xx = [c+0.5 fc+0.5];
+  end
+  
+  if( r > fr )
+    yy = [fr+0.5 r+0.5];
+  else
+    yy = [r+0.5 fr+0.5];
+  end
+  plot(xx,yy);
+  qi = indx;
+end
+
+
+
 
 function observed_state = transition_function(s,a)
 global DESIRED_PR;     DESIRED_PR     = 0.6;

@@ -1,6 +1,8 @@
 function qlearn
 % TODO: probability for movement
 % TODO: traversal, debug info plot
+% DONE: max steps per episode
+% 
 
 clc; clear all; close all;
 
@@ -33,19 +35,19 @@ small_map3 = ...
         C, C, G;
         ];
 
-large_map = ...                                                                                                                                                                                                   
-        [ C, C, C, C, O, C, C, C, C, C;                                                                                                                                                                             
-          C, O, O, C, O, C, C, C, C, C;                                                                                                                                                                             
-          C, S, O, C, O, C, C, C, C, C;                                                                                                                                                                             
-          C, O, O, C, O, C, C, C, C, C;                                                                                                                                                                             
-          C, C, C, C, C, C, C, C, O, C;                                                                                                                                                                             
-          C, C, C, C, C, C, C, C, O, C;                                                                                                                                                                             
-          C, C, C, C, C, C, C, C, O, C;                                                                                                                                                                             
-          O, O, O, O, O, O, O, O, O, C;                                                                                                                                                                             
-          C, C, C, C, C, C, C, C, C, C;                                                                                                                                                                             
-          G, C, C, C, C, C, C, C, C, C;                                                                                                                                                                             
+large_map = ...
+      [ C, C, C, C, O, C, C, C, C, C;
+        C, O, O, C, O, C, C, C, C, C;
+        C, S, O, C, O, C, C, C, C, C;
+        C, O, O, C, O, C, C, C, C, C;
+        C, C, C, C, C, C, C, C, O, C;
+        C, C, C, C, C, C, C, C, O, C;
+        C, C, C, C, C, C, C, C, O, C;
+        O, O, O, O, O, O, O, O, O, C;
+        C, C, C, C, C, C, C, C, C, C;
+        G, C, C, C, C, C, C, C, C, C;
         ];
-map = large_map;
+map = small_map;
 
 
 global ROW;
@@ -145,7 +147,7 @@ R;
 %--------------------------------------------------------------------------
 % 4) set up constants alpha, gamma, probabilities of movement, 
 %--------------------------------------------------------------------------
-global EPISODES; EPISODES = 100;
+global EPISODES; EPISODES = 20;
 display(sprintf('INFO: max episode %f',EPISODES));
 global STEPS; STEPS = 150;
 display(sprintf('INFO: max step %f',STEPS));
@@ -198,6 +200,25 @@ for e = 1:EPISODES
     Q(s,fs) = Q(s,fs) + ALPHA(param_i) * ( R(s,fs) + GAMMA(param_i) * q_max(fs) - Q(s,fs) );
 
 
+    textbox = plot_value(Q,s,fs,textbox);
+    s = fs;
+    steps = steps + 1;
+  end
+end
+
+
+saveas(gcf,sprintf('a%0.2fg%0.2fe%d.jpg',ALPHA(param_i),GAMMA(param_i),EPISODES),'jpg');
+end
+
+Q;
+
+%--------------------------------------------------------------------------
+% 6) Traverse from any starting point
+%--------------------------------------------------------------------------
+
+
+
+function textbox = plot_value(Q,s,fs,textbox)
     % update plot
     [r,c] = indx2rc(s);
     [fr,fc] = indx2rc(fs);
@@ -230,24 +251,8 @@ for e = 1:EPISODES
     else
       display('should not be here, bug');
     end
-    %pause(0.001); 
+    %pause(0.001);
     drawnow;
-    s = fs;
-    steps = steps + 1;
-  end
-end
-
-
-saveas(gcf,sprintf('a%0.2fg%0.2fe%d.jpg',ALPHA(param_i),GAMMA(param_i),EPISODES),'jpg');
-end
-
-Q;
-
-%--------------------------------------------------------------------------
-% 6) Traverse from any starting point
-%--------------------------------------------------------------------------
-
-
 
 
 %--------------------------------------------------------------------------

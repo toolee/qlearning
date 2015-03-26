@@ -47,7 +47,7 @@ large_map = ...
         C, C, C, C, C, C, C, C, C, C;
         G, C, C, C, C, C, C, C, C, C;
         ];
-map = small_map;
+map = large_map;
 %map = large_map;
 
 global ROW;
@@ -148,15 +148,24 @@ R;
 % 4) set up constants alpha, gamma, probabilities of movement, 
 %--------------------------------------------------------------------------
 global EPISODES; EPISODES = 100;
-display(sprintf('INFO: max episode %f',EPISODES));
+display(sprintf('INFO: max episode %d',EPISODES));
 global STEPS; STEPS = 150;
-display(sprintf('INFO: max step %f',STEPS));
-global ALPHA; ALPHA = [0.5]; % learning rate
-display(sprintf('INFO: alpha %f',ALPHA));
-global GAMMA; GAMMA = [0.5]; % discount rate
-display(sprintf('INFO: gamma %f',GAMMA));
-non_deterministic_world = 1;
+display(sprintf('INFO: max step %d',STEPS));
+global ALPHA; ALPHA = [0.9]; % learning rate
+display(sprintf('INFO: alpha %0.2f',ALPHA));
+global GAMMA; GAMMA = [0.8]; % discount rate
+display(sprintf('INFO: gamma %0.2f',GAMMA));
+global DETERM_WORLD; DETERM_WORLD = 1;
+display(sprintf('INFO: deterministic world %d',DETERM_WORLD));
+global EPSIL_GREEDY_PR; EPSIL_GREEDY_PR = 0.1;
+display(sprintf('INFO: e-greedy prob %0.2f',EPSIL_GREEDY_PR));
 
+global DESIRED_PR;     DESIRED_PR     = 0.6;
+display(sprintf('INFO: desired prob %0.2f',DESIRED_PR));
+global OTHER_DIR_PR;   OTHER_DIR_PR   = 0.3;
+display(sprintf('INFO: other dir prob %0.2f',OTHER_DIR_PR));
+global INPLACE_PR;     INPLACE_PR     = 0.1;
+display(sprintf('INFO: remain inplace prob %0.2f',INPLACE_PR));
 
 %--------------------------------------------------------------------------
 % 5) loop thru num of EPISODES
@@ -189,7 +198,6 @@ for e = 1:EPISODES
     avail_actions = find(R(s,:) >= 0); % find num of possible actions or exploration bonus
     num_actions = size(avail_actions,2);
     if ( num_actions > 0 )
-      action_taken = ( round(rand() * (num_actions - 1)) ) + 1;
     else
       break;  % started on an obstacle state
     end
@@ -197,7 +205,16 @@ for e = 1:EPISODES
     % get maximum q value for all states
     q_max = max(Q,[],2);
     
-    if( non_deterministic_world == 1)
+    if( DETERM_WORLD == 0 )
+      tmp = rand();
+      if( tmp >= EPSIL_GREEDY_PR )
+        % random action
+        action_taken = ( round(rand() * (num_actions - 1)) ) + 1;
+      else
+        % greedy action
+        [tmp_state,action_taken] = max(avail_actions);
+      end
+      
       % transition function for observed state based on selected action
       ds = avail_actions(action_taken);
       os = transition_function(s,ds);
@@ -206,6 +223,15 @@ for e = 1:EPISODES
       textbox = plot_value(Q,s,ds,textbox);
       s = os;
     else
+      tmp = rand();
+      if( tmp >= EPSIL_GREEDY_PR )
+        % random action
+        action_taken = ( round(rand() * (num_actions - 1)) ) + 1;
+      else
+        % greedy action
+        [tmp_state,action_taken] = max(avail_actions);
+      end
+      
       fs = avail_actions(action_taken);
       Q(s,fs) = Q(s,fs) + ALPHA(param_i) * ( R(s,fs) + GAMMA(param_i) * q_max(fs) - Q(s,fs) );
       textbox = plot_value(Q,s,fs,textbox);
@@ -255,9 +281,9 @@ end
 
 
 function observed_state = transition_function(s,a)
-global DESIRED_PR;     DESIRED_PR     = 0.6;
-global OTHER_DIR_PR;   OTHER_DIR_PR   = 0.3;
-global INPLACE_PR;     INPLACE_PR     = 0.1;
+global DESIRED_PR;
+global OTHER_DIR_PR;
+global INPLACE_PR;
 global ROW;
 global COL;
 

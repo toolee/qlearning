@@ -1,17 +1,13 @@
 function qlearn
-% DONE: probability for movement
-% DONE: traversal, debug info plot
-% DONE: max steps per episode
-% TODO: still need update policy
 
 clc; clear all; close all;
 
-%--------------------------------------------------------------------------
+%------------------------------------
 % 1) Create map, Draw the map
 %
 % It should show Q values, Destination.
 % For each episode, update the Q values.
-%--------------------------------------------------------------------------
+%------------------------------------
 global S; S = 7;
 global G; G = 8;
 global C; C = 1;
@@ -56,10 +52,10 @@ global COL;
 display(sprintf('INFO: Map size = %d x %d',ROW,COL));
 display(sprintf('INFO: 0 - obstacle | 1 - clear path | 7 - start | 8 - goal'));
 
-%--------------------------------------------------------------------------
+%------------------------------------
 % 2) Validate map, and capture start, goal position
 % Draw the map if valid
-%--------------------------------------------------------------------------
+%------------------------------------
 num_start = 0;
 num_goal = 0;
 for r = 1:ROW
@@ -98,13 +94,13 @@ for ri = 1:ROW
   end
 end
 
-%--------------------------------------------------------------------------
+%------------------------------------
 % 3) convert map into immediate reward matrix (node base) using following
 %
 %     100  - goal
 %     0    - clear path
 %     -inf - obstacle, self, not reachable, or diagonal...
-%--------------------------------------------------------------------------
+%------------------------------------
 num_states = ROW*COL;
 start_state = rc2indx(start_r,start_c);
 goal_state = rc2indx(goal_r,goal_c);
@@ -144,9 +140,9 @@ end
 
 R;
 
-%--------------------------------------------------------------------------
+%------------------------------------
 % 4) set up constants alpha, gamma, probabilities of movement, 
-%--------------------------------------------------------------------------
+%------------------------------------
 global EPISODES; EPISODES = 100;
 display(sprintf('INFO: max episode %d',EPISODES));
 global STEPS; STEPS = 150;
@@ -167,9 +163,9 @@ display(sprintf('INFO: other dir prob %0.2f',OTHER_DIR_PR));
 global INPLACE_PR;     INPLACE_PR     = 0.1;
 display(sprintf('INFO: remain inplace prob %0.2f',INPLACE_PR));
 
-%--------------------------------------------------------------------------
+%------------------------------------
 % 5) loop thru num of EPISODES
-%--------------------------------------------------------------------------
+%------------------------------------
 for param_i = 1:size(ALPHA,2)
 
 textbox(ROW,COL) = struct('up',[],'down',[],'left',[],'right',[]);
@@ -248,9 +244,9 @@ end
 
 Q;
 
-%--------------------------------------------------------------------------
+%------------------------------------
 % 6) Traverse from any starting point
-%--------------------------------------------------------------------------
+%------------------------------------
 qi = start_state;
 plot_cnt = 0;
 while qi ~= goal_state
@@ -277,9 +273,15 @@ while qi ~= goal_state
   end
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
+%--------------------------------------------------------------------------
+% transition function
+%--------------------------------------------------------------------------
 function observed_state = transition_function(s,a)
 global DESIRED_PR;
 global OTHER_DIR_PR;
@@ -361,10 +363,10 @@ else
   observed_state = s;
 end
 
-
-
-
-
+%--------------------------------------------------------------------------
+% textbox
+% Draws Q values on map
+%--------------------------------------------------------------------------
 function textbox = plot_value(Q,s,fs,textbox)
 % update plot
 [r,c] = indx2rc(s);
@@ -401,15 +403,17 @@ end
 %pause(0.001);
 drawnow;
 
-
 %--------------------------------------------------------------------------
-% util
+% rc2indx
 %--------------------------------------------------------------------------
 function index = rc2indx(r,c)
 global ROW;
 global COL;
 index = (r-1)*COL+c;
 
+%--------------------------------------------------------------------------
+% indx2rc
+%--------------------------------------------------------------------------
 function [r,c] = indx2rc(i)
 global ROW;
 global COL;

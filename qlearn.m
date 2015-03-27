@@ -1,5 +1,4 @@
-function qlearn
-
+function qlearn(input_map)
 clc; clear all; close all;
 
 %------------------------------------
@@ -8,10 +7,32 @@ clc; clear all; close all;
 % It should show Q values, Destination.
 % For each episode, update the Q values.
 %------------------------------------
+global EPISODES; EPISODES = 200;
+display(sprintf('INFO: max episode %d',EPISODES));
+global STEPS; STEPS = 200;
+display(sprintf('INFO: max step %d',STEPS));
+global ALPHA; ALPHA = [0.80]; % learning rate
+display(sprintf('INFO: alpha %0.2f',ALPHA));
+global GAMMA; GAMMA = [0.75]; % discount rate
+display(sprintf('INFO: gamma %0.2f',GAMMA));
+global DETERM_WORLD; DETERM_WORLD = 0;
+display(sprintf('INFO: deterministic world %d',DETERM_WORLD));
+global EPSIL_GREEDY_PR; EPSIL_GREEDY_PR = 0.2;
+display(sprintf('INFO: e-greedy prob %0.2f',EPSIL_GREEDY_PR));
+
+global DESIRED_PR;     DESIRED_PR     = 0.6;
+display(sprintf('INFO: desired prob %0.2f',DESIRED_PR));
+global OTHER_DIR_PR;   OTHER_DIR_PR   = 0.3;
+display(sprintf('INFO: other dir prob %0.2f',OTHER_DIR_PR));
+global INPLACE_PR;     INPLACE_PR     = 0.1;
+display(sprintf('INFO: remain inplace prob %0.2f',INPLACE_PR));
+
 global S; S = 7;
 global G; G = 8;
 global C; C = 1;
 global O; O = 0;
+
+if( nargin == 0 )
 
 small_map = ...
       [ S, C, C, C;
@@ -21,7 +42,7 @@ small_map = ...
         ];
 small_map2 = ...
       [ S, O, C;
-        C, C, C;
+        O, O, C;
         C, G, C;
         ];
 
@@ -39,12 +60,31 @@ large_map = ...
         C, C, C, C, C, C, C, C, O, C;
         C, C, C, C, C, C, C, C, O, C;
         C, C, C, C, C, C, C, C, O, C;
-        O, O, O, O, O, O, O, O, O, C;
+        O, O, O, C, O, O, O, O, O, C;
         C, C, C, C, C, C, C, C, C, C;
         G, C, C, C, C, C, C, C, C, C;
         ];
-map = large_map;
+      
+no_path_large_map = ...
+      [ C, C, C, C, O, C, C, C, C, C;
+        C, O, O, C, O, C, C, C, C, C;
+        C, S, O, C, O, C, C, C, C, C;
+        C, O, O, C, O, C, C, C, C, C;
+        C, C, C, C, C, C, C, C, O, C;
+        C, C, C, C, C, C, C, C, O, C;
+        C, C, C, C, C, C, C, C, O, C;
+        O, O, O, O, O, O, O, O, O, O;
+        C, C, C, C, C, C, C, C, C, C;
+        G, C, C, C, C, C, C, C, C, C;
+        ];
+%map = small_map;
 %map = large_map;
+map = large_map;
+elseif ( nargin == 1)
+  map = input_map;
+end
+
+
 
 global ROW;
 global COL;
@@ -141,30 +181,7 @@ end
 R;
 
 %------------------------------------
-% 4) set up constants alpha, gamma, probabilities of movement, 
-%------------------------------------
-global EPISODES; EPISODES = 100;
-display(sprintf('INFO: max episode %d',EPISODES));
-global STEPS; STEPS = 150;
-display(sprintf('INFO: max step %d',STEPS));
-global ALPHA; ALPHA = [0.9]; % learning rate
-display(sprintf('INFO: alpha %0.2f',ALPHA));
-global GAMMA; GAMMA = [0.8]; % discount rate
-display(sprintf('INFO: gamma %0.2f',GAMMA));
-global DETERM_WORLD; DETERM_WORLD = 1;
-display(sprintf('INFO: deterministic world %d',DETERM_WORLD));
-global EPSIL_GREEDY_PR; EPSIL_GREEDY_PR = 0.1;
-display(sprintf('INFO: e-greedy prob %0.2f',EPSIL_GREEDY_PR));
-
-global DESIRED_PR;     DESIRED_PR     = 0.6;
-display(sprintf('INFO: desired prob %0.2f',DESIRED_PR));
-global OTHER_DIR_PR;   OTHER_DIR_PR   = 0.3;
-display(sprintf('INFO: other dir prob %0.2f',OTHER_DIR_PR));
-global INPLACE_PR;     INPLACE_PR     = 0.1;
-display(sprintf('INFO: remain inplace prob %0.2f',INPLACE_PR));
-
-%------------------------------------
-% 5) loop thru num of EPISODES
+% 4) loop thru num of EPISODES
 %------------------------------------
 for param_i = 1:size(ALPHA,2)
 
@@ -245,12 +262,16 @@ end
 Q;
 
 %------------------------------------
-% 6) Traverse from any starting point
+% 5) Traverse from any starting point
 %------------------------------------
 qi = start_state;
 plot_cnt = 0;
 while qi ~= goal_state
   [max_value,indx] = max(Q(qi,:));
+  if(max_value == 0)
+    display('Did not converge');
+    break;
+  end
   [r,c] = indx2rc(qi);
   [fr,fc] = indx2rc(indx);
   if( c > fc )
